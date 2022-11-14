@@ -1,0 +1,2528 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Population Register Norway Data Model",
+    "description": "This Swagger file contains the translated data model that will be used to distributed across DNB consumers. The information model is the direct mapping from Folke Register.\n\nThe original swagger file from Folke register can be found [folkeregisteret-api-dokumentasjon](https://skatteetaten.github.io/folkeregisteret-api-dokumentasjon/konsumenttjenester/)\n\nMore information about the services can be found in public party conflunce page [Public Party](https://confluence.tech.dnb.no/display/FREG/Public+Party)",
+    "termsOfService": "Terms",
+    "version": "1.8.0"
+  },
+  "servers": [
+    {
+      "url": "/v1/population-register-no"
+    }
+  ],
+  "security": [
+    {
+      "OAuth2": [
+        "cis.population-register-no:read"
+      ]
+    }
+  ],
+  "paths": {
+    "/individuals": {
+      "post": {
+        "tags": [
+          "PopulationRegister"
+        ],
+        "summary": "Get updated data on one or more individuals",
+        "description": "Fetched data on more or more individuals from FREG.",
+        "operationId": "fetchIndividual",
+        "parameters": [
+          {
+            "name": "parts",
+            "in": "query",
+            "description": "'parts' parameter narrows the data being queried from the National Register to only that required by the API  consumer. It improves response times by reducing query delay (less data being searched), and network  bandwidth (less data being transferred). The `parts` options can be combined together to get the desired data in one query. If more than one option is provided, they have to be separated by a comma (ex.  parts=Birth,Citizenship,Death). Please note that the API is case sensitive and will return an error message  when options are provided incorrectly.\nThe following data can be queried using the options. If no 'parts' parameter is provided, the API defaults to 'PersonBasis' option. PersonBasis: standard set of current and non-confidential information: identification number, basis of identity,\n  status, deaths, martial status, birth, citizenship, sex, name, residential address, residence address, \n  shared residence, postal address, postal address abroad, address protection, contact information for \n  the estate.\nHistory: provides current and historical values for all personal data returned. IdentityExtended: provides false identity, identification document, foreign personal identification. RelationExtended: provides family relationship, parental responsibility, guardianship or future power of \n  attorney.\n${PropertyName}: it is possible to specify each individual property name (see the available values) to get \n  only the corresponding data. They can be combined with 'PersonBasis', 'IdentityExtended' and 'RelationExtended'\n  to further narrow the query.\n",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "uniqueItems": true,
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/InformationParts"
+              }
+            }
+          },
+          {
+            "name": "includeHistory",
+            "in": "query",
+            "description": "Flag to indicate if response should include historic information, defaults to false",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "X-DNBAPI-Trace-Id",
+            "in": "header",
+            "description": "Custom correlation-id to be able to correlate request / response. By logging this value on the client, server and any backing services, it provides a mechanism to trace, diagnose and debug requests. Header will be replaced by X-DNBAPI-Trace-Id when calling OpenAPI",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "maxLength": 50,
+              "type": "string"
+            },
+            "x-example": "8e61023b-249d-428e-afb2-e3f0f02b49a1"
+          },
+          {
+            "name": "X-DNBAPI-SourceApplication",
+            "in": "header",
+            "description": "The 7 digits ServiceNow Business Application ID of the initiating DNB application. The ID must be set by the first DNB application in the value-chain and must be forwarded in all internal requests. The value must not be modified.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "maxLength": 50,
+              "type": "string"
+            },
+            "x-example": "BAXXXXX"
+          },
+          {
+            "name": "X-DNBAPI-UserRole",
+            "in": "header",
+            "description": "The role of the user given in X-DNBAPI-UserId.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RETAIL",
+                "CORPORATE",
+                "AGENT",
+                "EMPLOYEE",
+                "SYSTEM"
+              ]
+            }
+          },
+          {
+            "name": "X-DNBAPI-UserIdType",
+            "in": "header",
+            "description": "Type of the ID given in X-DNBAPI-UserId. LOGON_ID can only be used when X-DNBAPI-UserRole is one of EMPLOYEE, CORPORATE, AGENT or SYSTEM. NNIN (Norwegian National Identity Number) can only be used when X-DNBAPI-UserRole is RETAIL or CORPORATE.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOGON_ID",
+                "NNIN"
+              ]
+            }
+          },
+          {
+            "name": "X-DNBAPI-UserId",
+            "in": "header",
+            "description": "The ID of the user for this context. For retail customers this will be Norwegian National Identification Number or the organization number for organizations. A TB ident for corporate scenarios, or an AB number for advisors.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-DNBAPI-ClientApplication",
+            "in": "header",
+            "description": "The 7 digits ServiceNow Business Application ID of immediate requesting service or application of an API. Must not be set to integration components, such as APIC, z/OS Connect or IIB.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            },
+            "x-example": "BAXXXXX"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/personRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Return persons data for all requested ids",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonBulkLookupResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {
+              "X-DNBAPI-Trace-Id": {
+                "description": "Custom correlation-id to be able to correlate request / response. By logging this value on the client, server and any backing services, it provides a mechanism to trace, diagnose and debug requests. Header will be replaced by X-DNBAPI-Trace-Id when calling OpenAPI",
+                "style": "simple",
+                "explode": false,
+                "schema": {
+                  "maxLength": 50,
+                  "type": "string"
+                },
+                "x-example": "8e61023b-249d-428e-afb2-e3f0f02b49a1"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized",
+            "headers": {
+              "X-DNBAPI-Trace-Id": {
+                "description": "Custom correlation-id to be able to correlate request / response. By logging this value on the client, server and any backing services, it provides a mechanism to trace, diagnose and debug requests. Header will be replaced by X-DNBAPI-Trace-Id when calling OpenAPI",
+                "style": "simple",
+                "explode": false,
+                "schema": {
+                  "maxLength": 50,
+                  "type": "string"
+                },
+                "x-example": "8e61023b-249d-428e-afb2-e3f0f02b49a1"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "headers": {
+              "X-DNBAPI-Trace-Id": {
+                "description": "Custom correlation-id to be able to correlate request / response. By logging this value on the client, server and any backing services, it provides a mechanism to trace, diagnose and debug requests. Header will be replaced by X-DNBAPI-Trace-Id when calling OpenAPI",
+                "style": "simple",
+                "explode": false,
+                "schema": {
+                  "maxLength": 50,
+                  "type": "string"
+                },
+                "x-example": "8e61023b-249d-428e-afb2-e3f0f02b49a1"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "headers": {
+              "X-DNBAPI-Trace-Id": {
+                "description": "Custom correlation-id to be able to correlate request / response. By logging this value on the client, server and any backing services, it provides a mechanism to trace, diagnose and debug requests. Header will be replaced by X-DNBAPI-Trace-Id when calling OpenAPI",
+                "style": "simple",
+                "explode": false,
+                "schema": {
+                  "maxLength": 50,
+                  "type": "string"
+                },
+                "x-example": "8e61023b-249d-428e-afb2-e3f0f02b49a1"
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "headers": {
+              "X-DNBAPI-Trace-Id": {
+                "description": "Custom correlation-id to be able to correlate request / response. By logging this value on the client, server and any backing services, it provides a mechanism to trace, diagnose and debug requests. Header will be replaced by X-DNBAPI-Trace-Id when calling OpenAPI",
+                "style": "simple",
+                "explode": false,
+                "schema": {
+                  "maxLength": 50,
+                  "type": "string"
+                },
+                "x-example": "8e61023b-249d-428e-afb2-e3f0f02b49a1"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "headers": {
+              "X-DNBAPI-Trace-Id": {
+                "description": "Custom correlation-id to be able to correlate request / response. By logging this value on the client, server and any backing services, it provides a mechanism to trace, diagnose and debug requests. Header will be replaced by X-DNBAPI-Trace-Id when calling OpenAPI",
+                "style": "simple",
+                "explode": false,
+                "schema": {
+                  "maxLength": 50,
+                  "type": "string"
+                },
+                "x-example": "8e61023b-249d-428e-afb2-e3f0f02b49a1"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "headers": {
+              "X-DNBAPI-Trace-Id": {
+                "style": "simple",
+                "explode": false,
+                "schema": {
+                  "maxLength": 50,
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "headers": {
+              "X-DNBAPI-Trace-Id": {
+                "style": "simple",
+                "explode": false,
+                "schema": {
+                  "maxLength": 50,
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Gateway timeout",
+            "headers": {
+              "X-DNBAPI-Trace-Id": {
+                "description": "Custom correlation-id to be able to correlate request / response. By logging this value on the client, server and any backing services, it provides a mechanism to trace, diagnose and debug requests. Header will be replaced by X-DNBAPI-Trace-Id when calling OpenAPI",
+                "style": "simple",
+                "explode": false,
+                "schema": {
+                  "maxLength": 50,
+                  "type": "string"
+                },
+                "x-example": "8e61023b-249d-428e-afb2-e3f0f02b49a1"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Metadata": {
+        "title": "Metadata",
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "FREG: Aarsak"
+          },
+          "registeredAt": {
+            "type": "string",
+            "description": "FREG: Ajourholdstidspunkt",
+            "format": "date-time"
+          },
+          "isValid": {
+            "type": "boolean",
+            "description": "FREG: ErGjeldende"
+          },
+          "validFrom": {
+            "type": "string",
+            "description": "FREG: Gyldighetstidspunkt",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "FREG: Kilde"
+          },
+          "validTo": {
+            "type": "string",
+            "description": "FREG: Opphoerstidspunkt",
+            "format": "date-time"
+          }
+        },
+        "description": "Common metadata for fields."
+      },
+      "AddressConfidentiality": {
+        "title": "AddressConfidentiality",
+        "type": "string",
+        "description": "Confidentiality level of an address in the National Population Register. \n\nFREG: Adressegradering",
+        "enum": [
+          "Unclassified",
+          "ClientAddress",
+          "Confidential",
+          "StrictlyConfidential"
+        ]
+      },
+      "PersonBulkLookupResponse": {
+        "title": "PersonBulkLookupResponse",
+        "type": "object",
+        "properties": {
+          "lookup": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LookUp"
+            }
+          }
+        }
+      },
+      "LookUp": {
+        "title": "LookUp",
+        "required": [
+          "norwegianIdentificationNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "errorMessage": {
+            "$ref": "#/components/schemas/ErrorMessage"
+          },
+          "norwegianIdentificationNumber": {
+            "type": "string"
+          },
+          "person": {
+            "$ref": "#/components/schemas/Person"
+          }
+        }
+      },
+      "FreeFormAddress": {
+        "title": "FreeFormAddress",
+        "type": "object",
+        "properties": {
+          "addressLine": {
+            "type": "array",
+            "description": "FREG: Adresselinje",
+            "items": {
+              "type": "string"
+            }
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "Used for all countries including Norway.\nCountry codes are given in ISO 3166-1 alfa 2, with the following extensions:\nXK = Kosovo\nYY = Unknown.\n\nFREG: landkode"
+          }
+        },
+        "description": "FREG: AdresseIFrittFormat"
+      },
+      "AddressNumber": {
+        "title": "AddressNumber",
+        "required": [
+          "houseNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "houseLetter": {
+            "type": "string",
+            "description": "A letter that together with HouseNumber\nuniquely identifiers property, facilities, buildings\nor entrances to building within an addressable\nstreet, road, path, place or area. \n\nFREG: Husbokstav"
+          },
+          "houseNumber": {
+            "type": "string",
+            "description": "A number that uniquely identifiers property,\nfacilities, buildings or entrances to building within\nan addressable street, road, path, place or area. \n\n FREG: Husnummer"
+          }
+        },
+        "description": "Address number.\nA number and maybe letters that uniquely identifiers property,\nfacilities, buildings or entrances to building within\nan addressable street, road, path, place or area\nIn Norway most residence has a house number and letter, but other systems exists. \n\n FREG: Adressenummer"
+      },
+      "LawyerAsContact": {
+        "title": "LawyerAsContact",
+        "required": [
+          "personName"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string",
+            "description": "Name of organization, may be foreign. \n\nFREG: Organisasjonsnavn"
+          },
+          "organizationNumber": {
+            "type": "string",
+            "description": "Norwegian organization number, must be 9 digits and start with 8 or 9. \n\nFREG: Organisasjonsnummer"
+          },
+          "personName": {
+            "$ref": "#/components/schemas/Name"
+          }
+        },
+        "description": "Contact information for a Lawyer. \n\nFREG: AdvokatSomKontakt"
+      },
+      "NorwegianCitizenshipRetention": {
+        "title": "NorwegianCitizenshipRetention",
+        "required": [
+          "citizenshipRetentionStatus"
+        ],
+        "description": "FREG: BibeholdAvNorskStatsborgerskap",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "citizenshipRetentionStatus": {
+                "title": "CitizenshipRetention",
+                "type": "string",
+                "description": "FREG: Bibehold",
+                "enum": [
+                  "CitizenshipRetained",
+                  "CitizenshipNoLongerRetained",
+                  "NorwegianCitizenRetentionNotRequired"
+                ]
+              },
+              "retentionResolutionDate": {
+                "type": "string",
+                "description": "The resolution date of retention of norwegian citizenship. \n\n FREG: DatoForBibehold",
+                "format": "date"
+              }
+            }
+          }
+        ]
+      },
+      "ResidentialAddress": {
+        "title": "ResidentialAddress",
+        "required": [
+          "addressConfidentiality"
+        ],
+        "description": "Address where person is registered to live.\n\nFREG: Bostedsadresse",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "matrikkelenIdentifier": {
+                "type": "string",
+                "description": "Unique identifier from the Norwegian Mapping Authority. \n\nFREG: AdresseIdentifikatorFraMatrikkelen"
+              },
+              "addressConfidentiality": {
+                "$ref": "#/components/schemas/AddressConfidentiality"
+              },
+              "moveDate": {
+                "type": "string",
+                "description": "Reported as move date by person. \n\nFREG: Flyttedato",
+                "format": "date"
+              },
+              "basicStatisticalUnit": {
+                "type": "integer",
+                "description": "Unique code by the municipality used to\ndivide small areas of similar nature/commercial/building structure\nused as grounds for detailed regional statistic analysis. \n\nFREG: Grunnkrets",
+                "format": "int64"
+              },
+              "churchDistrict": {
+                "type": "integer",
+                "description": "Unique code for the parish (kirke sogn) Parish is the basic unit of the Norwegian Church. Remarks: The church district can extend over several municipalities. \n\nFREG: Kirkekrets",
+                "format": "int64"
+              },
+              "matrikkelAddress": {
+                "$ref": "#/components/schemas/MatrikkelAddress"
+              },
+              "closeMatrikkelenIdentifier": {
+                "type": "string",
+                "description": "Unique identifier from the Mapping Authority. If the Matrikkel information used in ResidentialAddress.MatrikkelIdentifier is inaccurate, ResidentialAddress.closeMatrikkelenIdentifier will contain the unqiue identifier for a near by house. I.e. If the house letter is not known, the ResidentialAddress.closeMatrikkelenIdentifier could point to the house with letter A, while ResidentialAddress.MatrikkelenIdentifier would point to all the house number, without letters (which could be multiple houses) Used to catch changes to the Matrikkel to a nearby Remarks: (07.02.2020) Not in use. \n\nFREG: NaerAdresseIdentifikatorFraMatrikkelen"
+              },
+              "schoolDistrict": {
+                "type": "integer",
+                "description": "Unique code by the municipality used to describe a geographical division, used as a non-binding school affiliation for kids in the area. \n\nFREG: Skolekrets",
+                "format": "int64"
+              },
+              "constituency": {
+                "type": "integer",
+                "description": "Unique code by the municipality used as geographical division of the municipality set by the electoral committee Remarks: Also knows as in the voting constituency Matrikkel. \n\nFREG: Stemmekrets (Valgkrets i matrikkelen)",
+                "format": "int64"
+              },
+              "unknownResidence": {
+                "$ref": "#/components/schemas/UnknownResidence"
+              },
+              "streetAddress": {
+                "$ref": "#/components/schemas/StreetAddress"
+              }
+            }
+          }
+        ]
+      },
+      "SharedResidence": {
+        "title": "SharedResidence",
+        "required": [
+          "addressConfidentiality",
+          "contractValidFrom"
+        ],
+        "description": "Address information on shared parenting, shared residence or joint residence\nRemarks: \nNB! This may be outdated!\nOnly one of SharedResidence.StreetAddress, SharedResidence.MatrikkelAddress\nor SharedResidence.UnknownResidence is in use.\nContains address information based on the original shared parental agreement.\nThis address is a copy of the address for the parent not sharing residence\nwith the child at that point.\nThis address will not be updated if that parent moves. \n\nFREG: DeltBosted",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "matrikkelenIdentifier": {
+                "type": "string",
+                "description": "Unique identifier from the Mapping Authority.\nUsed to catch changes to the Matrikkel. \n\nFREG: AdresseidentifikatorFraMatrikkelen"
+              },
+              "addressConfidentiality": {
+                "$ref": "#/components/schemas/AddressConfidentiality"
+              },
+              "matrikkelAddress": {
+                "$ref": "#/components/schemas/MatrikkelAddress"
+              },
+              "closeMatrikkelenIdentifier": {
+                "type": "string",
+                "description": "\nFREG: NaerAdresseIdentifikatorFraMatrikkelen"
+              },
+              "contractValidTo": {
+                "type": "string",
+                "description": "End date for the agreement between parents for\nthe shared residence\nRemarks: \nMay not have a end date. \n\nFREG: SluttdatoForKontrakt",
+                "format": "date"
+              },
+              "contractValidFrom": {
+                "type": "string",
+                "description": "Start date for the agreement between parents for\nthe shared residence. \n\nFREG: StartdatoForKontrakt",
+                "format": "date"
+              },
+              "unknownResidence": {
+                "$ref": "#/components/schemas/UnknownResidence"
+              },
+              "streetAddress": {
+                "$ref": "#/components/schemas/StreetAddress"
+              }
+            }
+          }
+        ]
+      },
+      "Death": {
+        "title": "Death",
+        "description": "Information on a persons death.\n\nFREG: Doedsfall",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "dateOfDeath": {
+                "type": "string",
+                "description": "The date when the person was decleared dead.\n\nFREG: Doedsdato",
+                "format": "date"
+              }
+            }
+          }
+        ]
+      },
+      "FalseIdentity": {
+        "title": "FalseIdentity",
+        "description": "Information regarding false identity on a person\nAn identity belonging to another person then the person using it.Or not belonging to anyone at all, but presented as a real identity.\n\nPersons who is currently or have had their NIN (Norwegian Identification Number)\nmisused by others, will not have information about the misuse.\nNeither will there be info on the person misusing another persons identity.\n\nFREG: FalskIdentitet",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "isFalseIdentity": {
+                "type": "boolean",
+                "description": "Remarks: Should always be true.\n\nFREG: ErFalsk"
+              },
+              "isCorrectIdentityUnknown": {
+                "type": "boolean",
+                "description": "If true, the correct identity for the false identity is not known.\n\nFREG: RettIdentitetErUkjent"
+              },
+              "correctIdentityFromIdentificationNumber": {
+                "type": "string",
+                "description": "The correct identity for the false identity\nis known by the Norwegian Identification Number (fødselsnummer or D-number). \n\nFREG: RettIdentitetVedIdentifikasjonsnummer"
+              },
+              "correctIdentityFromInformation": {
+                "$ref": "#/components/schemas/IdentifyingInformation"
+              }
+            }
+          }
+        ]
+      },
+      "FamilyRelation": {
+        "title": "FamilyRelation",
+        "required": [
+          "relatedPersonsRole"
+        ],
+        "description": "Family relation between Person and a related person.\nThe related person has either a valid identification number (nin or d-number) or RelatedBiPerson object. \n\nFREG: Familierelasjon",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "myRoleForRelatedPerson": {
+                "title": "FamilyRelationType",
+                "type": "string",
+                "description": "FREG: Familierelasjonstype",
+                "enum": [
+                  "Mother",
+                  "Father",
+                  "CoMother",
+                  "Child",
+                  "Sibling",
+                  "SpouseOrPartner",
+                  "StillbornChild"
+                ]
+              },
+              "relatedPerson": {
+                "type": "string",
+                "description": "The identification number (nin or d-number) for the related person\nRemarks: Is null if FamilyRelation.RelatedPersonWithoutIdentifier is used. \n\nFREG: relatertPerson"
+              },
+              "relatedPersonWithoutIdentifier": {
+                "$ref": "#/components/schemas/RelatedBiPerson"
+              },
+              "relatedPersonsRole": {
+                "title": "FamilyRelationType",
+                "type": "string",
+                "description": "FREG: Familierelasjonstype",
+                "enum": [
+                  "Mother",
+                  "Father",
+                  "CoMother",
+                  "Child",
+                  "Sibling",
+                  "SpouseOrPartner",
+                  "StillbornChild"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "Birth": {
+        "title": "Birth",
+        "required": [
+          "yearOfBirth"
+        ],
+        "description": "FREG: Foedsel",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "birthMunicipalityNumber": {
+                "type": "string",
+                "description": "Norwegian municipality number where the birth was registered, if the person was born in Norway.\n\nFREG: FoedekommuneINorge"
+              },
+              "countryOfBirth": {
+                "type": "string",
+                "description": "The country code for the country where the person was born.\nCountry codes is given in ISO 3166-1 alpha 3. \n\nFREG: Foedeland"
+              },
+              "placeOfBirth": {
+                "type": "string",
+                "description": "FREG: Foedested"
+              },
+              "yearOfBirth": {
+                "type": "string",
+                "description": "FREG: Foedselsaar"
+              },
+              "dateOfBirth": {
+                "type": "string",
+                "description": "FREG: Foedselsdato",
+                "format": "date"
+              }
+            }
+          }
+        ]
+      },
+      "BirthInNorway": {
+        "title": "BirthInNorway",
+        "description": "Additional information about a persons birth if this person was born in Norway. \n\nFREG: FoedselINorge",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organizationName": {
+                "type": "string",
+                "description": "The organization/institution where the person was born, for example \"Molde sjukehus\". \n\nFREG: Foedselsinstitusjonsnavn"
+              },
+              "multipleBirthNumber": {
+                "type": "integer",
+                "description": "The number of this person if there were multiple births. This number is a combination of multiple data points:\nFirst number = the total number of children in multiple births\nSecond number = this persons number in the sequence\n            \nExample: \"21\" means that this child was the firstborn twin (this person was the first of two births). \n\nFREG: Rekkefoelgenummer",
+                "format": "int64"
+              }
+            }
+          }
+        ]
+      },
+      "NorwegianIdentificationNumber": {
+        "title": "NorwegianIdentificationNumber",
+        "required": [
+          "identificationNumberType",
+          "norwegianIdentificationNumber",
+          "status"
+        ],
+        "description": "Information on norwegian identification numbers for this person.\nThis includes both national identity numbers (fødselsnummer) and D-numbers (d-nummer). \n\nFREG: Folkeregisteridentifikator",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "norwegianIdentificationNumber": {
+                "type": "string",
+                "description": "National identity number (fødselsnummer) or D-number (d-nummer). \n\nFREG: FoedselsEllerDNummer"
+              },
+              "identificationNumberType": {
+                "title": "NorwegianIdentificationNumberType",
+                "type": "string",
+                "description": "Types of identification numbers in the National Population Register (FREG). \n\nFREG: Identifikatortype",
+                "enum": [
+                  "NationalIdentityNumber",
+                  "DNumber"
+                ]
+              },
+              "status": {
+                "title": "IdentificationNumberStatus",
+                "type": "string",
+                "description": "FREG: Identifikatorstatuskode",
+                "enum": [
+                  "InUse",
+                  "Discontinued"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "Person": {
+        "title": "Person",
+        "type": "object",
+        "properties": {
+          "addressProtection": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AddressProtection"
+            }
+          },
+          "norwegianCitizenshipRetention": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NorwegianCitizenshipRetention"
+            }
+          },
+          "residentialAddress": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResidentialAddress"
+            }
+          },
+          "useOfSamiLanguage": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SamiLanguage"
+            }
+          },
+          "sharedResidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SharedResidence"
+            }
+          },
+          "death": {
+            "$ref": "#/components/schemas/Death"
+          },
+          "falseIdentity": {
+            "$ref": "#/components/schemas/FalseIdentity"
+          },
+          "familyRelation": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FamilyRelation"
+            }
+          },
+          "birth": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Birth"
+            }
+          },
+          "birthInNorway": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BirthInNorway"
+            }
+          },
+          "parentalResponsibility": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParentalResponsibility"
+            }
+          },
+          "samiParliamentElectoralRegistryStatus": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SamiParliamentElectoralRegistry"
+            }
+          },
+          "norwegianIdentificationNumber": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NorwegianIdentificationNumber"
+            }
+          },
+          "identityVerification": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IdentityVerification"
+            }
+          },
+          "immigrationToNorway": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImmigrationToNorway"
+            }
+          },
+          "gender": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Gender"
+            }
+          },
+          "residuaryEstateContactInformation": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResiduaryEstateContactInformation"
+            }
+          },
+          "identificationDocument": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IdentificationDocument"
+            }
+          },
+          "name": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonName"
+            }
+          },
+          "residency": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Residency"
+            }
+          },
+          "stayOnSvalbard": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StayOnSvalbard"
+            }
+          },
+          "presentAddress": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PresentAddress"
+            }
+          },
+          "postalAddress": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactAddress"
+            }
+          },
+          "foreignPostalAddress": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForeignContactAddress"
+            }
+          },
+          "preferredContactAddress": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PreferredContactAddress"
+            }
+          },
+          "maritalStatus": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaritalStatus"
+            }
+          },
+          "citizenship": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Citizenship"
+            }
+          },
+          "status": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Status"
+            }
+          },
+          "foreignPersonIdentificationNumber": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonIdentification"
+            }
+          },
+          "emigrationFromNorway": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmigrationFromNorway"
+            }
+          },
+          "immigrationAuthoritiesIdentificationNumber": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonIdentification"
+            }
+          },
+          "guardianshipOrFuturePowerOfAttorney": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GuardianshipOrFuturePowerOfAttorney"
+            }
+          },
+          "deprivedOfLegalCapacity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeprivedOfLegalCapacity"
+            }
+          }
+        }
+      },
+      "PersonName": {
+        "title": "PersonName",
+        "required": [
+          "familyName",
+          "givenName"
+        ],
+        "description": "Information on a persons name.\nFREG: Folkeregisterpersonnavn",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "familyName": {
+                "type": "string",
+                "description": "FREG: Etternavn"
+              },
+              "shortName": {
+                "type": "string",
+                "description": "FREG: ForkortetNavn"
+              },
+              "givenName": {
+                "type": "string",
+                "description": "FREG: Fornavn"
+              },
+              "middleName": {
+                "type": "string",
+                "description": "FREG: Mellomnavn"
+              },
+              "originalName": {
+                "$ref": "#/components/schemas/Name"
+              }
+            }
+          }
+        ]
+      },
+      "Status": {
+        "title": "Status",
+        "required": [
+          "status"
+        ],
+        "description": "FREG: Folkeregisterpersonstatus",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "title": "StatusType",
+                "type": "string",
+                "description": "The nature of the relationship/connection to Norway and the National Population Registry.\n\nFREG: status",
+                "enum": [
+                  "Resident",
+                  "Emigrated",
+                  "Disappeared",
+                  "Deceased",
+                  "Discontinued",
+                  "RegisteredAtBirth",
+                  "Temporary",
+                  "Inactive",
+                  "NotResident",
+                  "Active"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "ParentalResponsibility": {
+        "title": "ParentalResponsibility",
+        "required": [
+          "responsibilityType"
+        ],
+        "description": "FREG: Foreldreansvar",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "responsibilityType": {
+                "title": "ParentalResponsibilityType",
+                "type": "string",
+                "description": "Types of parental responsibility. \n\nFREG: Foreldreansvarstype",
+                "enum": [
+                  "Joint",
+                  "Mother",
+                  "Father",
+                  "CoMother",
+                  "Other",
+                  "Unknown"
+                ]
+              },
+              "responsible": {
+                "type": "string",
+                "description": "The identification number (nin or d-number) of the person responsible for the subject. \n\nFREG: Ansvarlig"
+              },
+              "responsibleOrganization": {
+                "type": "string",
+                "description": "FREG: AnsvarligOrganisasjon"
+              },
+              "responsibleWithoutIdentifier": {
+                "$ref": "#/components/schemas/RelatedBiPerson"
+              },
+              "subjectOfResponsibility": {
+                "type": "string",
+                "description": "The identification number (nin or d-number) of the subject of responsibility. \n\nFREG: Ansvarssubjekt"
+              },
+              "subjectOfResponsibilityWithoutIdentifier": {
+                "$ref": "#/components/schemas/RelatedBiPerson"
+              }
+            }
+          }
+        ]
+      },
+      "AddressProtection": {
+        "title": "AddressProtection",
+        "required": [
+          "protectionLevel"
+        ],
+        "description": "This information is used to describe the overall protection level a person have on all his addresses of types\nresidential, living and shared residence addresses. The address protection does not apply to\ncontact addresses. \n\nFREG: GraderingAvAdresse",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "protectionLevel": {
+                "$ref": "#/components/schemas/AddressConfidentiality"
+              }
+            }
+          }
+        ]
+      },
+      "IdentificationDocument": {
+        "title": "IdentificationDocument",
+        "required": [
+          "documentType",
+          "issuerCountry"
+        ],
+        "description": "Identification Document contains information on what documentation\nwas used to verify the identity of the person. \n\nFREG: Identifikasjonsdokument / Legitimasjonsdokument",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "documentVerification": {
+                "$ref": "#/components/schemas/DocumentVerification"
+              },
+              "documentValidFrom": {
+                "type": "string",
+                "description": "Time and date document is valid from. \n\nFREG: GyldigFra",
+                "format": "date"
+              },
+              "documentValidTo": {
+                "type": "string",
+                "description": "Time and date document is valid to. \n\nFREG: GyldigTil",
+                "format": "date"
+              },
+              "identificationDocumentNumber": {
+                "type": "string",
+                "description": "Identification number on the document used for identity verification\nI.e. a passport number. \n\nFREG: Identifikasjondokumentnummer"
+              },
+              "identificationDocumentType": {
+                "type": "string",
+                "description": "Type of documentation.\nI.e. driver license or passport. \n\nFREG: Identifikasjondokumenttype"
+              },
+              "issuerCountry": {
+                "type": "string",
+                "description": "Name of the country the document is issued in\nRemarks: \nNewest updates uses ISO 3166-1 Alpha 3 for country codes\nXXK = Kosovo even if document contains \"RKS\". \n\nFREG: Utstederland"
+              },
+              "issuerName": {
+                "type": "string",
+                "description": "Name of the issuer. \n\nFREG: Utstedernavn"
+              }
+            }
+          }
+        ]
+      },
+      "IdentifyingInformation": {
+        "title": "IdentifyingInformation",
+        "required": [
+          "citizenship",
+          "personName"
+        ],
+        "type": "object",
+        "properties": {
+          "dateOfBirth": {
+            "type": "string",
+            "description": "FREG: Foedselsdato",
+            "format": "date"
+          },
+          "gender": {
+            "title": "Gender",
+            "type": "string",
+            "description": "FREG: Kjoenn",
+            "enum": [
+              "Female",
+              "Male"
+            ]
+          },
+          "personName": {
+            "$ref": "#/components/schemas/Name"
+          },
+          "citizenship": {
+            "type": "array",
+            "description": "FREG: Statsborgerskap",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "description": "FREG: IdentifiserendeInformasjon"
+      },
+      "IdentityVerification": {
+        "title": "IdentityVerification",
+        "required": [
+          "identityVerificationStatus"
+        ],
+        "description": "FREG: Identitetsgrunnlag",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "identityVerificationStatus": {
+                "title": "IdentityVerificationStatus",
+                "type": "string",
+                "description": "FREG: Identitetsgrunnlagstatus",
+                "enum": [
+                  "None",
+                  "NotVerified",
+                  "Verified"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "ImmigrationToNorway": {
+        "title": "ImmigrationToNorway",
+        "description": "Information on the country and city of residence of the person before immigration to norway.\nCountry codes are given in ISO 3166-1 alfa 3. \n\nFREG: InnflyttingTilNorge",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "immigratedFromCountry": {
+                "type": "string",
+                "description": "FREG: Fraflyttingsland"
+              },
+              "immigratedFromCity": {
+                "type": "string",
+                "description": "FREG: FraflyttingsstedIUtland"
+              }
+            }
+          }
+        ]
+      },
+      "InternationalAddress": {
+        "title": "InternationalAddress",
+        "required": [
+          "countryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "addressName": {
+            "type": "string",
+            "description": "Name of a street, road, path, place or area\nas registered in the Matrikkel of a municipality\nRemarks: \nAddress number (housing number and lettering) may be included. \n\nFREG: Adressenavn"
+          },
+          "housingUnit": {
+            "type": "string",
+            "description": "Address property describing what kind of habitat or\nbusiness is registered, and a unique identifier within\nthe building / floor. \n\nFREG: Boenhet"
+          },
+          "cityOrPlaceName": {
+            "type": "string",
+            "description": "Name of place or city. \n\nFREG: ByEllerStedsnavn"
+          },
+          "building": {
+            "type": "string",
+            "description": "Describes name and/or number of a building. \n\nFREG: Bygning"
+          },
+          "coAddressName": {
+            "type": "string",
+            "description": "Description of who the recipient is in care of (C/O),\nor which recipient in an organization (v/ = with, or Att: = \"Attention\"). \n\nFREG: CoAdressenavn"
+          },
+          "districtName": {
+            "type": "string",
+            "description": "District inside a country or part of a city. \n\nFREG: Distriktsnavn"
+          },
+          "floorNumber": {
+            "type": "string",
+            "description": "Described which floor the registered address is located in. \n\nFREG: Etasjenummer"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "2 letter Code used to represent a country\nRemarks: \nUses ISO 3166-1 Alpha 2. XK = Kosovo. \n\nFREG: Landkode"
+          },
+          "postOfficeBox": {
+            "type": "string",
+            "description": "Post box identifier. \n\nFREG: Postboks"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Post code / zip code for each post area. \n\nFREG: Postkode"
+          },
+          "region": {
+            "type": "string",
+            "description": "Large geographical area part of a country. \n\nFREG: Region"
+          }
+        },
+        "description": "International address. \n\nFREG: InternasjonalAdresse"
+      },
+      "FreeFormInternationalAddress": {
+        "title": "FreeFormInternationalAddress",
+        "required": [
+          "countryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "addressLine": {
+            "type": "array",
+            "description": "Address lines. \n\nFREG: Adresselinje",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cityOrPlaceName": {
+            "type": "string",
+            "description": "Name of place or city. \n\nFREG: ByEllerStedsnavn"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "2 letter Code used to represent a country\nRemarks: \nUses ISO 3166-1 Alpha 2. XK = Kosovo.\n\nFREG: Landkode"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Post code / zip code for each post area. \n\nFREG: Postkode"
+          }
+        },
+        "description": "FREG: InternasjonalAdresseIFrittFormat"
+      },
+      "ContactAddress": {
+        "title": "ContactAddress",
+        "required": [
+          "addressConfidentiality"
+        ],
+        "description": "FREG: Kontaktadresse",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "matrikkelenIdentifier": {
+                "type": "string",
+                "description": "Unique identifier from the Norwegian Mapping Authority. \n\nFREG: AdresseIdentifikatorFraMatrikkelen"
+              },
+              "addressConfidentiality": {
+                "$ref": "#/components/schemas/AddressConfidentiality"
+              },
+              "freeFormPostalAddress": {
+                "$ref": "#/components/schemas/FreeFormPostalAddress"
+              },
+              "postOfficeBoxAddress": {
+                "$ref": "#/components/schemas/PostOfficeBoxAddress"
+              },
+              "streetAddress": {
+                "$ref": "#/components/schemas/PostalStreetAddress"
+              }
+            }
+          }
+        ]
+      },
+      "ContactAddressForResiduaryEstate": {
+        "title": "ContactAddressForResiduaryEstate",
+        "required": [
+          "addressLine",
+          "postalArea",
+          "postalCode"
+        ],
+        "type": "object",
+        "properties": {
+          "addressLine": {
+            "type": "array",
+            "description": "Address lines. \n\nFREG: Adresselinje",
+            "items": {
+              "type": "string"
+            }
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "To letter country code. \n\nFREG: Landkode"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Post code / zip code. \n\nFREG: Postnummer"
+          },
+          "postalArea": {
+            "type": "string",
+            "description": "Post location / city. \n\nFREG: Poststedsnavn"
+          }
+        },
+        "description": "Contact information for residuary estate. \n\nFREG: KontaktAdresseForDoedsbo"
+      },
+      "ForeignContactAddress": {
+        "title": "ForeignContactAddress",
+        "required": [
+          "addressConfidentiality"
+        ],
+        "description": "FREG: KontaktadresseIUtlandet",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "addressConfidentiality": {
+                "$ref": "#/components/schemas/AddressConfidentiality"
+              },
+              "foreignAddress": {
+                "$ref": "#/components/schemas/InternationalAddress"
+              },
+              "freeFormInternationalAddress": {
+                "$ref": "#/components/schemas/FreeFormInternationalAddress"
+              }
+            }
+          }
+        ]
+      },
+      "ResiduaryEstateContactInformation": {
+        "title": "ResiduaryEstateContactInformation",
+        "required": [
+          "contactAddress",
+          "probateCertificateIssueDate",
+          "probateCertificateType"
+        ],
+        "description": "Residuary estate contact information\nWill be either a Person, a Lawyer or an Organization. \n\nFREG: KontaktinformasjonForDoedsbo",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contactAddress": {
+                "$ref": "#/components/schemas/ContactAddressForResiduaryEstate"
+              },
+              "lawyer": {
+                "$ref": "#/components/schemas/LawyerAsContact"
+              },
+              "probateCertificateIssueDate": {
+                "type": "string",
+                "description": "Date of the probate certificate issuance. \n\nFREG: Attestutstedelsesdato",
+                "format": "date"
+              },
+              "organization": {
+                "$ref": "#/components/schemas/OrganizationAsContact"
+              },
+              "person": {
+                "$ref": "#/components/schemas/PersonAsContact"
+              },
+              "probateCertificateType": {
+                "title": "ProbateCertificateType",
+                "type": "string",
+                "description": "Type of Probate Certificate. \n\nFREG: Skifteform",
+                "enum": [
+                  "Public",
+                  "Other"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "MatrikkelAddress": {
+        "title": "MatrikkelAddress",
+        "required": [
+          "matrikkelNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "addressAdditionalName": {
+            "type": "string",
+            "description": "Inherited farm name (bruksnavn) or name of a institution or building,\nused as a part of the official address. \n\nFREG: Addressetilleggsnavn"
+          },
+          "propertyUnitNumber": {
+            "type": "string",
+            "description": "A letter and four digits that uniquely identifies the\nseparately occupied unit inside a addressable building\nor part of a building\nRemarks: \nTwo first digits represent floor number. \n\nFREG: Bruksenhetsnummer",
+            "example": "H0101"
+          },
+          "propertyUnitNumberType": {
+            "title": "PropertyUnitNumberType",
+            "type": "string",
+            "description": "Categorization of occupancy unit type. \n\nFREG: Bruksenhetstype",
+            "enum": [
+              "Housing",
+              "OtherThanHousing",
+              "HolidayHome",
+              "NotApprovedAsHousing",
+              "UnnumberedSeparatelyOccupiedUnit"
+            ]
+          },
+          "coAddressName": {
+            "type": "string",
+            "description": "Description of who the recipient is in care of (C/O),\nor which recipient in an organization (v/ = with, or Att: = \"Attention\"). \n\nFREG: CoAdressenavn",
+            "example": "C/O ACME Company, Inc."
+          },
+          "matrikkelNumber": {
+            "$ref": "#/components/schemas/MatrikkelNumber"
+          },
+          "postalArea": {
+            "$ref": "#/components/schemas/PostalArea"
+          },
+          "subNumber": {
+            "type": "integer",
+            "description": "Used with MatrikkelNumber when a real estate property\nis linked to several different addresses\nRemarks: \nI.e. each building on a farmyard has a sub number. \n\nFREG: Undernummer",
+            "format": "int64"
+          }
+        },
+        "description": "Address for specifying areas in a municipality that has yet to get a StreetAddress. \n\nFREG: Matrikkeladresse"
+      },
+      "MatrikkelNumber": {
+        "title": "MatrikkelNumber",
+        "required": [
+          "municipalityNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "titleNumber": {
+            "type": "integer",
+            "description": "FREG: Bruksnummer",
+            "format": "int64"
+          },
+          "leaseholdNumber": {
+            "type": "integer",
+            "description": "FREG: Festenummer",
+            "format": "int64"
+          },
+          "municipalityLandNumber": {
+            "type": "integer",
+            "description": "FREG: Gårdsnummer",
+            "format": "int64"
+          },
+          "municipalityNumber": {
+            "type": "string",
+            "description": "A number identifying a municipality or\nmunicipality-like area. \n\nFREG: Kommunenummer"
+          }
+        },
+        "description": "FREG: Matrikkelnummer"
+      },
+      "Residency": {
+        "title": "Residency",
+        "required": [
+          "residencePermit"
+        ],
+        "description": "FREG: Opphold",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "stayFrom": {
+                "type": "string",
+                "description": "FREG: OppholdFra",
+                "format": "date"
+              },
+              "stayTo": {
+                "type": "string",
+                "description": "FREG: oppholdTil",
+                "format": "date"
+              },
+              "residencePermit": {
+                "title": "ResidencePermitType",
+                "type": "string",
+                "description": "FREG: Oppholdstillatelse",
+                "enum": [
+                  "Temporary",
+                  "Permanent",
+                  "InformationMissing"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "StayOnSvalbard": {
+        "title": "StayOnSvalbard",
+        "required": [
+          "estimatedLengthOfStay",
+          "startDate"
+        ],
+        "description": "FREG: OppholdPaaSvalbard",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "numberOfPreviousStays": {
+                "type": "integer",
+                "description": "FREG: AntallTidligereOpphold",
+                "format": "int64"
+              },
+              "estimatedLengthOfStay": {
+                "title": "EstimatedLengthOfStay",
+                "type": "string",
+                "description": "FREG: OppholdsvarighetType",
+                "enum": [
+                  "UnderSixMonths",
+                  "OverSixMonths",
+                  "OverTwelveMonths",
+                  "Unknown"
+                ]
+              },
+              "immigratedFromMunicipalityNumber": {
+                "type": "string",
+                "description": "FREG: Fraflyttingskommunenummer"
+              },
+              "immigratedFromCountry": {
+                "type": "string",
+                "description": "FREG: Fraflyttingsland"
+              },
+              "endDate": {
+                "type": "string",
+                "description": "FREG: Sluttdato",
+                "format": "date"
+              },
+              "startDate": {
+                "type": "string",
+                "description": "FREG: Startdato",
+                "format": "date"
+              }
+            }
+          }
+        ]
+      },
+      "PresentAddress": {
+        "title": "PresentAddress",
+        "required": [
+          "addressConfidentiality"
+        ],
+        "description": "FREG: Oppholdsadresse",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "matrikkelenIdentifier": {
+                "type": "string",
+                "description": "FREG: AdresseIdentifikatorFraMatrikkelen"
+              },
+              "addressConfidentiality": {
+                "$ref": "#/components/schemas/AddressConfidentiality"
+              },
+              "isAddressUnknown": {
+                "type": "boolean",
+                "description": "FREG: AdressenErUkjent"
+              },
+              "matrikkelAddress": {
+                "$ref": "#/components/schemas/MatrikkelAddress"
+              },
+              "stayElsewhere": {
+                "title": "StayElsewhere",
+                "type": "string",
+                "description": "FREG: OppholdAnnetSted",
+                "enum": [
+                  "Military",
+                  "Abroad",
+                  "OnSvalbard",
+                  "Commuter"
+                ]
+              },
+              "presentAddressDate": {
+                "type": "string",
+                "description": "The date of when this living address was reported to the National Population Register (FREG). \n\nFREG: Oppholdsadressedato",
+                "format": "date"
+              },
+              "foreignAddress": {
+                "$ref": "#/components/schemas/InternationalAddress"
+              },
+              "streetAddress": {
+                "$ref": "#/components/schemas/StreetAddress"
+              }
+            }
+          }
+        ]
+      },
+      "OrganizationAsContact": {
+        "title": "OrganizationAsContact",
+        "required": [
+          "organizationName"
+        ],
+        "type": "object",
+        "properties": {
+          "contactPersonName": {
+            "$ref": "#/components/schemas/Name"
+          },
+          "organizationName": {
+            "type": "string",
+            "description": "Name of organization, may be foreign FREG: Organisasjonsnavn."
+          },
+          "organizationNumber": {
+            "type": "string",
+            "description": "Norwegian organization number, must be 9 digits and start with 8 or 9. \n\nFREG: Organisasjonsnummer"
+          }
+        },
+        "description": "Organization as contact Used in Residuary estate, if there is an organization that takes care of the estate. \n\nFREG: OrganisasjonSomKontakt"
+      },
+      "PersonAsContact": {
+        "title": "PersonAsContact",
+        "type": "object",
+        "properties": {
+          "norwegianIdentificationNumber": {
+            "type": "string",
+            "description": "Nin of the contact person Remarks: Norwegian Identification Number (fødselsnummer / F-number or D-number). \n\nFREG: FoedselsEllerDNummer"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "description": "dateOfBirth of the contact person. \n\nFREG: Foedselsdato",
+            "format": "date"
+          },
+          "personName": {
+            "$ref": "#/components/schemas/Name"
+          }
+        },
+        "description": "Person used as contact Used in Residuary estate, the person taking care of the residuary estate. \n\nFREG: PersonSomKontakt"
+      },
+      "PersonIdentification": {
+        "title": "PersonIdentification",
+        "required": [
+          "identificationNumber",
+          "identificationNumberType",
+          "issuerCountry"
+        ],
+        "description": "Identification for a person, used for foreign persons identification and immigration authorities identification. Both Person.foreignPersonIdentificationNumber(FREG:utenlandskPersonidentifikasjon) and Person.immigrationAuthoritiesIdentificationNumber(FREG:utlendingsmyndighetenesIdentifikasjonsnummer) are represented by Array of PersonIdentification entity \n\nFREG: Personidentifikasjon ",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "identificationNumber": {
+                "type": "string",
+                "description": "The identification number. \n\nFREG: Identifikasjonsnummer"
+              },
+              "identificationNumberType": {
+                "type": "string",
+                "description": "Type of foreign identification Possible values:  \n\n - utenlandskIdentifikasjonsnummer = Foreign identification number \n\n - taxIdentificationNumber = Tax Identification Number(TIN) \n\n - socialSecurityNumber = Social Security Number(SSN) \n\n - utlendingsmyndighetenesIdentifikasjonsnummer = DUF-nummer from the Norwegian UDI, for now. \n\nURL to information model(section 5.12)  : https://skatteetaten.github.io/folkeregisteret-api-dokumentasjon/dokumenter/20220314_Informasjonsmodell-Modernisering%20av%20folkeregisteret%20v3.8.pdf \n\nFREG: Identifikasjonsnummertype"
+              },
+              "issuerCountry": {
+                "type": "string",
+                "description": "Country codes where the Identification Number is issued. Given in ISO 3166-1 Alpha 3 format. For Person.immigrationAuthoritiesIdentificationNumber, the issuerCountry is always NOR . XXK = Kosovo. \n\nFREG: Utstederland"
+              }
+            }
+          }
+        ]
+      },
+      "Gender": {
+        "title": "Gender",
+        "required": [
+          "gender"
+        ],
+        "description": "FREG: Personkjoenn",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "gender": {
+                "title": "Gender",
+                "type": "string",
+                "description": "FREG: kjoenn",
+                "enum": [
+                  "Female",
+                  "Male"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "Name": {
+        "title": "Name",
+        "required": [
+          "familyName",
+          "givenName"
+        ],
+        "type": "object",
+        "properties": {
+          "familyName": {
+            "type": "string",
+            "description": "FREG: Etternavn"
+          },
+          "givenName": {
+            "type": "string",
+            "description": "FREG: Fornavn"
+          },
+          "middleName": {
+            "type": "string",
+            "description": "FREG: Mellomnavn"
+          }
+        },
+        "description": "FREG:navn"
+      },
+      "FreeFormPostalAddress": {
+        "title": "FreeFormPostalAddress",
+        "type": "object",
+        "properties": {
+          "addressLine": {
+            "type": "array",
+            "description": "FREG: Adresselinje",
+            "items": {
+              "type": "string"
+            }
+          },
+          "postalArea": {
+            "$ref": "#/components/schemas/PostalArea"
+          }
+        },
+        "description": "FREG: PostadresseIFrittFormat"
+      },
+      "PostOfficeBoxAddress": {
+        "title": "PostOfficeBoxAddress",
+        "required": [
+          "postOfficeBox"
+        ],
+        "type": "object",
+        "properties": {
+          "postOfficeBox": {
+            "type": "string",
+            "description": "Post box identifier consisting of its alphanumeric identification together with the post office box office name. \n\nFREG: Postboks"
+          },
+          "postOfficeBoxOwner": {
+            "type": "string",
+            "description": "Person owning or renting the post box. \n\nFREG: Postbokseier"
+          },
+          "postalArea": {
+            "$ref": "#/components/schemas/PostalArea"
+          }
+        },
+        "description": "Address to a post box. \n\nFREG: Postboksadresse"
+      },
+      "PostalArea": {
+        "title": "PostalArea",
+        "type": "object",
+        "properties": {
+          "postalCode": {
+            "type": "string",
+            "description": "Postal code / zip code for each post area. \n\nFREG: Postnummer"
+          },
+          "cityName": {
+            "type": "string",
+            "description": "Post location / city name. \n\nFREG: poststedsnavn"
+          }
+        },
+        "description": "Post location / city and zip code. \n\nFREG: Poststed"
+      },
+      "PreferredContactAddress": {
+        "title": "PreferredContactAddress",
+        "required": [
+          "addressType"
+        ],
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "addressConfidentiality": {
+                "$ref": "#/components/schemas/AddressConfidentiality"
+              },
+              "freeformContactAddress": {
+                "$ref": "#/components/schemas/FreeFormAddress"
+              },
+              "addressType": {
+                "title": "AddressType",
+                "type": "string",
+                "description": "FREG: valg",
+                "enum": [
+                  "ResidentialAddress",
+                  "LivingAddress",
+                  "PostalAddress",
+                  "ForeignPostalAddress"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "RelatedBiPerson": {
+        "title": "RelatedBiPerson",
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "dateOfBirth": {
+            "type": "string",
+            "description": "FREG: Foedselsdato",
+            "format": "date"
+          },
+          "gender": {
+            "title": "Gender",
+            "type": "string",
+            "description": "FREG: Kjoenn",
+            "enum": [
+              "Female",
+              "Male"
+            ]
+          },
+          "name": {
+            "$ref": "#/components/schemas/Name"
+          },
+          "citizenship": {
+            "type": "string",
+            "description": "The citizenship of the RelatedBiPerson. \n\nFREG: Statsborgerskap"
+          }
+        },
+        "description": "FREG: RelatertBiPerson"
+      },
+      "SamiParliamentElectoralRegistry": {
+        "title": "SamiParliamentElectoralRegistry",
+        "required": [
+          "resolutionDate",
+          "samiParliamentElectoralRegistryStatus"
+        ],
+        "description": "FREG: SametingetsValgmanntall",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "samiParliamentElectoralRegistryStatus": {
+                "title": "SamiParliamentElectoralRegistryStatus",
+                "type": "string",
+                "description": "FREG: ForholdTilSametingetsValgmanntall",
+                "enum": [
+                  "Enrolled",
+                  "Unenrolled",
+                  "NeverEnrolled"
+                ]
+              },
+              "resolutionDate": {
+                "type": "string",
+                "description": "FREG: Vedtaksdato",
+                "format": "date"
+              }
+            }
+          }
+        ]
+      },
+      "SamiLanguage": {
+        "title": "SamiLanguage",
+        "required": [
+          "language"
+        ],
+        "description": "Information on which sami languages a person uses. \n\nFREG: SamiskSpraak",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "languageType": {
+                "type": "array",
+                "description": "FREG: Spraak",
+                "items": {
+                  "title": "SamiLanguageType",
+                  "type": "string",
+                  "description": "Sami language types. \n\nFREG: SamiskSpraakType",
+                  "enum": [
+                    "NorthernSami",
+                    "SouthernSami",
+                    "LuleSami"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "MaritalStatus": {
+        "title": "MaritalStatus",
+        "required": [
+          "maritalstatus"
+        ],
+        "description": "FREG : Sivilstand",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "municipalityNumber": {
+                "type": "string",
+                "description": "Number of the municipaltiy the marital status was changed. If the marital status is a Marrige, the municipality number will be used when there is a representative of the municipality who is married. \n\nFREG: Kommune"
+              },
+              "authority": {
+                "type": "string",
+                "description": "Code value for which authority that has granted the marital status If the source of the Marital Status is DSF, the current values: DSF er denne verdien representert med vigselstype (VIGSELSTYPE) 1 = The Norwegian Church 2 = Civil 3 = Dissenter for a non-established Church or other denominations with marital rights 4 = Abroad - Foreign authority Updated 2021.10.14. \n\n FREG: Myndighet"
+              },
+              "relatedByMaritalStatus": {
+                "type": "string",
+                "description": "NIN for person related by marital status. \n\nFREG: RelatertVedSivilstatus"
+              },
+              "maritalStatus": {
+                "title": "MaritalStatusType",
+                "type": "string",
+                "description": "FREG: Sivilstandstype",
+                "enum": [
+                  "Unspecified",
+                  "Unmarried",
+                  "Married",
+                  "WidowOrWidower",
+                  "Divorced",
+                  "Separated",
+                  "RegisteredPartner",
+                  "SeparatedPartner",
+                  "DivorcedPartner",
+                  "SurvivingPartner"
+                ]
+              },
+              "maritalStatusDate": {
+                "type": "string",
+                "description": "Date of the marial status. \n\nFREG: SivilstandDato",
+                "format": "date"
+              },
+              "place": {
+                "type": "string",
+                "description": "Name of the place in Norway or abroad where the status change was made. May be an address or less exact. \n\nFREG: Sted"
+              },
+              "foreignCountry": {
+                "type": "string",
+                "description": "Name of country if happened abroad. \n\nFREG: Utland"
+              }
+            }
+          }
+        ]
+      },
+      "Citizenship": {
+        "title": "Citizenship",
+        "required": [
+          "citizenship"
+        ],
+        "description": "FREG: Statsborgerskap",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "acquiredDate": {
+                "type": "string",
+                "description": "FREG: Ervervsdato",
+                "format": "date"
+              },
+              "citizenship": {
+                "type": "string",
+                "description": "FREG: Statsborgerskap"
+              }
+            }
+          }
+        ]
+      },
+      "DocumentVerification": {
+        "title": "DocumentVerification",
+        "required": [
+          "verificationStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "verificationStatus": {
+            "type": "string",
+            "description": "What kind of technical control is done on the document.\nI.e. \"Keesing-machine\" or other methods. \n\nFREG: Dokumentkontrollstatus"
+          },
+          "verifiedAt": {
+            "type": "string",
+            "description": "Time and date for the verification. \n\nFREG: Dokumentkontrolltidspunkt",
+            "format": "date-time"
+          }
+        },
+        "description": "Document verification. \n\nFREG: Dokumentkontroll"
+      },
+      "UnknownResidence": {
+        "title": "UnknownResidence",
+        "type": "object",
+        "properties": {
+          "municipalityNumber": {
+            "type": "string",
+            "description": "Persons adress is unknown, but the Municipality is known. \n\nFREG: Bostedskommune"
+          }
+        },
+        "description": "Person has an unknown address. \n\nFREG: UkjentBosted"
+      },
+      "EmigrationFromNorway": {
+        "title": "EmigrationFromNorway",
+        "description": "Information on the new country and city of residence for the person after emigration from Norway. Country codes are given in ISO 3166-1 alfa 3. \n\nFREG: UtflyttingFraNorge",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "emigratedToPlace": {
+                "type": "string",
+                "description": "FREG: TilflyttingsstedIUtlandet"
+              },
+              "emigratedToCountry": {
+                "type": "string",
+                "description": "FREG: Tilflyttingsland"
+              },
+              "emigratedDate": {
+                "type": "string",
+                "description": "FREG: utflyttingsdato",
+                "format": "date"
+              }
+            }
+          }
+        ]
+      },
+      "StreetAddress": {
+        "title": "StreetAddress",
+        "required": [
+          "addressName",
+          "municipalityNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "addressCode": {
+            "type": "string",
+            "description": "Number that uniquely identifies an addressable\nstreet, road, path, place or area\nRemarks: \nKnown as StreetCode (\"gatekode\") in DSF. \n\nFREG: Adressekode"
+          },
+          "addressName": {
+            "type": "string",
+            "description": "Name of a street, road, path, place or area\nas registered in the matrikkel of a municipality\nRemarks: \nDoes not contain street address number (housing number and lettering). \n\nFREG: Adressenavn"
+          },
+          "addressNumber": {
+            "$ref": "#/components/schemas/AddressNumber"
+          },
+          "addressAdditionalName": {
+            "type": "string",
+            "description": "Inherited farm name (bruksnavn) or name of a institution or building,\nused as a part of the official address. \n\nFREG: Addressetilleggsnavn"
+          },
+          "propertyUnitNumber": {
+            "type": "string",
+            "description": "A letter and four digits that uniquely identifies the\nsperately occupied unit inside a addressable building\nor part of a building\nRemarks: \nTwo first digits represent floor number. \n\nFREG: Bruksenhetsnummer"
+          },
+          "propertyUnitNumberType": {
+            "title": "PropertyUnitNumberType",
+            "type": "string",
+            "description": "FREG: Bruksenhetstype",
+            "enum": [
+              "Housing",
+              "OtherThanHousing",
+              "HolidayHome",
+              "NotApprovedAsHousing",
+              "UnnumberedSeparatelyOccupiedUnit"
+            ]
+          },
+          "coAddressName": {
+            "type": "string",
+            "description": "Description of who the recipient is in care of (C/O),\nor which recipient in an organization (v/ = with, or Att: = \"Attention\"). \n\nFREG: CoAdressenavn"
+          },
+          "municipalityNumber": {
+            "type": "string",
+            "description": "A number identifying a municipality or\nmunicipality-like area. \n\nFREG: Kommunenummer"
+          },
+          "postalArea": {
+            "$ref": "#/components/schemas/PostalArea"
+          }
+        },
+        "description": "Street address Describes the address where a person lives, stays or has shared parental residence.\n\nFREG: Vegadresse"
+      },
+      "PostalStreetAddress": {
+        "title": "PostalStreetAddress",
+        "type": "object",
+        "properties": {
+          "addressCode": {
+            "type": "string",
+            "description": "Number that uniquely identifies an addressable street, road, path, place or area Remarks: Known as StreetCode (gatekode) in DSF. \n\nFREG: Adressekode"
+          },
+          "addressName": {
+            "type": "string",
+            "description": "Name of a street, road, path, place or area as registered in the matrikkel of a municipality Remarks: Does not contain street address number (housing number and lettering) . \n\nFREG: Adressenavn"
+          },
+          "addressNumber": {
+            "$ref": "#/components/schemas/AddressNumber"
+          },
+          "addressAdditionalName": {
+            "type": "string",
+            "description": "Inherited farm name (bruksnavn) or name of a institution or building, used as a part of the official address . \n\nFREG: Addressetilleggsnavn"
+          },
+          "propertyUnitNumber": {
+            "type": "string",
+            "description": "A letter and four digits that uniquely identifies the separately occupied unit inside a addressable building or part of a building Remarks: Two first digits represent floor number . \n\nFREG: Bruksenhetsnummer"
+          },
+          "coAddressName": {
+            "type": "string",
+            "description": "Description of who the recipient is in care of (C/O), or which recipient in an organization (v/ = with, or Att: = Attention). \n\nFREG: CoAdressenavn"
+          },
+          "postalArea": {
+            "$ref": "#/components/schemas/PostalArea"
+          }
+        },
+        "description": "Street address for post usage Describes the address where a person lives, stays or has shared parental residence. \n\nFREG: VegadresseForPost"
+      },
+      "GuardianOrProxy": {
+        "title": "GuardianOrProxy",
+        "type": "object",
+        "properties": {
+          "identificationNumber": {
+            "type": "string",
+            "description": "FREG: FoedselsEllerDNummer"
+          },
+          "name": {
+            "$ref": "#/components/schemas/Name"
+          },
+          "guardianshipScope": {
+            "title": "GuardianshipScope",
+            "type": "string",
+            "description": "FREG: Vergemaalsomfang",
+            "enum": [
+              "ImmigrationPersonalAndFinancialInterests",
+              "PersonalAndFinancialInterests",
+              "FinancialInterests",
+              "PersonalInterests"
+            ]
+          },
+          "isGuardianshipInPersonalScope": {
+            "type": "boolean",
+            "description": "FREG: OmfangetErInnenPersonligOmraade"
+          },
+          "personDetails": {
+            "$ref": "#/components/schemas/PersonDetails"
+          },
+          "serviceArea": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GuardianServiceArea"
+            }
+          }
+        },
+        "description": "FREG: VergeRepresentantEllerFullmektig"
+      },
+      "GuardianshipOrFuturePowerOfAttorney": {
+        "title": "GuardianshipOrFuturePowerOfAttorney",
+        "required": [
+          "guardian"
+        ],
+        "description": "FREG: VergemaalRepresentasjonEllerFremtidsfullmakt",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "office": {
+                "type": "string",
+                "description": "FREG: Embete"
+              },
+              "guardian": {
+                "$ref": "#/components/schemas/GuardianOrProxy"
+              },
+              "guardianshipType": {
+                "title": "GuardianshipType",
+                "type": "string",
+                "description": "FREG: Vergemaaltype",
+                "enum": [
+                  "SingleMinorAsylumSeeker",
+                  "SingleMinorRefugee",
+                  "Adult",
+                  "TemporaryForAdult",
+                  "Minor",
+                  "TemporaryForMinor",
+                  "ManagementOutsideGuardianship",
+                  "ConfirmedFuturePowerOfAttorney"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "personRequest": {
+        "title": "personRequest",
+        "type": "object",
+        "properties": {
+          "norwegianIdentificationNumber": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PersonDetails": {
+        "title": "PersonDetails",
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/Name"
+          },
+          "gender": {
+            "type": "string",
+            "description": "Gender of the person \n\n FREG: Kjoenn",
+            "enum": [
+              "Male",
+              "Female"
+            ]
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "description": "Day on which the person was born \n\n FREG: foedselsdato"
+          },
+          "citizenship": {
+            "type": "array",
+            "description": "Citizenship of the person \n\n FREG: statsborgerskap",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "description": "Contains details of person such as name, date of birth, gender and citizenship \n\n FREG: PersonNavnFoedselsdato"
+      },
+      "GuardianServiceArea": {
+        "title": "GuardianServiceArea",
+        "type": "object",
+        "properties": {
+          "guardianServiceAssignment": {
+            "type": "string",
+            "description": "FREG: vergeTjenesteoppgave"
+          },
+          "guardianServiceProvider": {
+            "type": "string",
+            "description": "FREG: vergeTjenestevirksomhet"
+          }
+        },
+        "description": "FREG: vergeTjenesteomraade"
+      },
+      "DeprivedOfLegalCapacity": {
+        "title": "DeprivedOfLegalCapacity",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          {
+            "type": "object",
+            "description": "FREG: FratattRettsligHandleevne"
+          }
+        ]
+      },
+      "InformationParts": {
+        "title": "InformationParts",
+        "type": "string",
+        "description": "Which information parts that should be included in the result.",
+        "enum": [
+          "AddressProtection",
+          "Birth",
+          "BirthInNorway",
+          "Citizenship",
+          "ContactAddress",
+          "Death",
+          "DeprivedOfLegalCapacity",
+          "EmigrationFromNorway",
+          "FalseIdentity",
+          "FamilyRelation",
+          "ForeignContactAddress",
+          "ForeignPersonIdentificationNumber",
+          "ForeignPostalAddress",
+          "Gender",
+          "GuardianshipOrFuturePowerOfAttorney",
+          "IdentificationDocument",
+          "IdentityExtended",
+          "IdentityVerification",
+          "ImmigrationAuthoritiesIdentificationNumber",
+          "ImmigrationToNorway",
+          "MaritalStatus",
+          "NorwegianCitizenshipRetention",
+          "NorwegianIdentificationNumber",
+          "ParentalResponsibility",
+          "PersonBasis",
+          "PersonName",
+          "PostalAddress",
+          "PreferredContactAddress",
+          "PresentAddress",
+          "RelationExtended",
+          "Residency",
+          "ResidentialAddress",
+          "ResiduaryEstateContactInformation",
+          "SamiLanguage",
+          "SamiParliamentElectoralRegistry",
+          "SamiParliamentElectoralRegistryStatus",
+          "SharedResidence",
+          "Status",
+          "StayOnSvalbard",
+          "UseOfSamiLanguage"
+        ]
+      },
+      "ErrorResponse": {
+        "title": "ErrorResponse",
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "string",
+            "description": "General statusCode for the shasl layer. 0 = error."
+          },
+          "backendInfo": {
+            "type": "array",
+            "description": "ErrorResponse values from backend.",
+            "items": {
+              "$ref": "#/components/schemas/BackendResponse"
+            }
+          }
+        },
+        "example": {
+          "code": 0,
+          "message": "General error"
+        }
+      },
+      "BackendResponse": {
+        "title": "BackendResponse",
+        "type": "object",
+        "properties": {
+          "endPointUrl": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "description": "Error message from FREG"
+      },
+      "ErrorMessage": {
+        "title": "ErrorMessage",
+        "required": [
+          "errorMessage"
+        ],
+        "type": "object",
+        "properties": {
+          "errorMessage": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "OAuth2": {
+        "type": "oauth2",
+        "description": "population-register-no-v1 API allows only usage without direct end-user interaction. Following the cIAM  architecture, OAuth2 client credentials flow is implemented as a security layer of the API. The generated token must have 'cis.population-register-no:read' scope, and must be included in the JWT format as a Bearer token in the 'Authorization' header for every request.\n",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://api.ciam.dnb.no/as/token.oauth2",
+            "scopes": {
+              "cis.population-register-no:read": "Grants read access"
+            }
+          }
+        }
+      }
+    }
+  }
+}
